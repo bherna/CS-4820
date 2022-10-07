@@ -53,6 +53,8 @@ public static class MazeGenerator
 
     //recursive back-track algorithm
     //this function will return an acutall completed maze
+    //video where i get this algorithm from
+    //https://www.youtube.com/watch?v=ya1HyptE5uc 
     private static WallState[,] ApplyRecursiveBackTracker(WallState[,] maze, int width, int height)
     {
 

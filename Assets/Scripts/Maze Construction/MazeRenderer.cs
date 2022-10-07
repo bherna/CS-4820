@@ -18,6 +18,10 @@ public class MazeRenderer : MonoBehaviour
     [SerializeField]
     private Transform wallPrefab = null;
 
+    //again for the wall /\
+    [SerializeField]
+    private Transform floorPrefab = null;
+
     //used for determining the size of a node
     private float size = 1f;
 
@@ -33,6 +37,10 @@ public class MazeRenderer : MonoBehaviour
     //used for actually rendering the maze, given
     private void Draw(WallState[,] maze)
     {
+        //create the floor first
+        var floor = Instantiate(floorPrefab, transform);
+        floor.localScale = new Vector3(width, 1, height); //increase floor size
+
         
         for (int i = 0; i < width; i++)
         {
