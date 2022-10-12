@@ -32,13 +32,6 @@
          }    
      }
  
-     // return file name
-     string fileName(int width, int height)
-     {
-        return string.Format("screen_{0}x{1}_{2}.png",
-                              width, height,
-                              System.DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss"));
-     }
  
      public IEnumerator TakeScreenShot()
      {
@@ -53,15 +46,23 @@
         imageOverview.Apply();
         RenderTexture.active = currentRT;    
         
+
+        //compress texture
+        TextureScale.Bilinear(imageOverview, imageOverview.width/4,  imageOverview.height/4);
+
         //save copy in color
         saveImage(imageOverview);
 
         //convert to greyscale
         imageOverview = convertToGrey(imageOverview);
-
-        //save copy in greyscale
         saveImage(imageOverview);
 
+        //sobel operation
+        imageOverview = sobelOperation(imageOverview);
+        saveImage(imageOverview);
+
+        //destory texture (idk why)
+        Destroy(imageOverview);
 
      }
 
@@ -71,7 +72,7 @@
     private void saveImage(Texture2D imageOverview){
 
         byte[] bytes = imageOverview.EncodeToJPG();
-        //Destroy(imageOverview);
+        
         String filename = cameraAngle + fileCounter + ".jpg";
         File.WriteAllBytes(Application.dataPath + "/Backgrounds/" + filename, bytes);
         fileCounter++;
@@ -79,7 +80,7 @@
 
 
 
-    //convet texture to greyscale
+    //given a texture, convet texture to greyscale
     private Texture2D convertToGrey(Texture2D graph){
         
         Texture2D grayImg;
@@ -113,7 +114,113 @@
 
 
 
+    //just return a black filled texture, given a  texture for size reference
+    private Texture2D convertToBlack(Texture2D originalTexture){
+
+        Texture2D targetTexture = new Texture2D(originalTexture.width, originalTexture.height);
+
+        for (int y = 0; y < originalTexture.height; y++) {
+            for (int x = 0; x < originalTexture.width; x++) {
+ 
+                targetTexture.SetPixel(x, y, Color.black);
+ 
+            }
+        }
+        
+        return targetTexture;
+    }
 
 
+    //do sobel operation, used for depth detection
+    //credit:   https://epochabuse.com/csharp-sobel/
+    //          https://www.youtube.com/watch?v=uihBwtPIBxM 
+    private Texture2D sobelOperation(Texture2D originalTexture){
+
+        //variables
+        //grid of 9 pixels
+        float _00 = 0.0f;
+        float _01 = 0.0f;
+        float _02 = 0.0f;
+        float _10 = 0.0f;
+        //float _11 = 0.0;
+        float _12 = 0.0f;
+        float _20 = 0.0f;
+        float _21 = 0.0f;
+        float _22 = 0.0f;
+
+        //sobel x and y and total
+        float totalX = 0f;
+        float totalY = 0f;
+        float total = 0f;
+
+        //color temp
+        Color tempColor = new Color(0,0,0);
+
+        //for loop logic
+        int filterOffset = 1;
+        int height = originalTexture.height;
+        int width = originalTexture.width;
+
+        //return  texutre:
+        Texture2D retTexture = new Texture2D(originalTexture.width, originalTexture.height);
+        
+        //return to black 
+        retTexture = convertToBlack(retTexture);
+
+
+        //sobel op
+        //first calculate the lighting disparity between a set of nine pixels
+        /*      X                       Y
+            -1, 0, 1 // _00, _01, _02  // 1, 2, 1
+            -2, 0, 2 // _10, _11, _12  // 0, 0, 0
+            -1, 0, 1 // _20, _21, _22  //-1,-2,-1
+        */
+        //assuming  we start at _11
+        for (int filterY = filterOffset; filterY <= height - filterOffset; filterY++)
+        {
+            for (int filterX = filterOffset; filterX <= width - filterOffset; filterX++)
+            {   
+                //X
+                //left side
+                _00 = -1 * originalTexture.GetPixel(filterX-1, filterY-1).grayscale;
+                _10 = -2 * originalTexture.GetPixel(filterX-1, filterY).grayscale;
+                _20 = -1 * originalTexture.GetPixel(filterX-1, filterY+1).grayscale;
+
+                //right side
+                _02 = 1 * originalTexture.GetPixel(filterX+1, filterY-1).grayscale;
+                _12 = 2 * originalTexture.GetPixel(filterX+1, filterY).grayscale;
+                _22 = 1 * originalTexture.GetPixel(filterX+1, filterY+1).grayscale;
+
+                //calculate X
+                totalX = _00 + _10 + _20 + _02 + _12 + _22;
+
+                //Y
+                //topside
+                _00 = 1 * originalTexture.GetPixel(filterX-1, filterY-1).grayscale;
+                _01 = 2 * originalTexture.GetPixel(filterX, filterY-1).grayscale;
+                _02 = 1 * originalTexture.GetPixel(filterX+1, filterY-1).grayscale;
+
+                //downside
+                _20 = -1 * originalTexture.GetPixel(filterX-1, filterY+1).grayscale;
+                _21 = -2 * originalTexture.GetPixel(filterX, filterY+1).grayscale;
+                _22 = -1 * originalTexture.GetPixel(filterX+1, filterY+1).grayscale;
+
+                //calculate Y
+                totalY = _00 + _01 + _02 + _20 + _21 + _22;
+
+                //now get hypo
+                total = (float)Math.Sqrt(Math.Pow(totalX,2) + Math.Pow(totalY,2));
+                Debug.Log(total.ToString("0.00"));
+
+                //set pixel in the return texture
+                tempColor = new Color(total, total, total);
+                retTexture.SetPixel(filterX, filterY, tempColor);
+            }
+        }
+
+        return retTexture;
+    }
+
+    
 
  }
