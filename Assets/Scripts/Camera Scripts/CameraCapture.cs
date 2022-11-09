@@ -17,6 +17,7 @@
      GameObject OVcamera;
      public int fileCounter = 0;
      public string cameraAngle = "";
+     private int compressSize = 1;
  
 
      void Start()
@@ -48,7 +49,7 @@
         
 
         //compress texture
-        TextureScale.Bilinear(imageOverview, imageOverview.width/4,  imageOverview.height/4);
+        TextureScale.Bilinear(imageOverview, imageOverview.width/compressSize,  imageOverview.height/compressSize);
 
         //save copy in color
         saveImage(imageOverview);
