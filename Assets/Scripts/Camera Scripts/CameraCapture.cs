@@ -1,9 +1,13 @@
- using System.IO;
- using UnityEngine;
- using System.Collections;
- using System;
- 
- public class CameraCapture : MonoBehaviour
+using System.IO;
+using UnityEngine;
+using System.Collections;
+using System;
+
+//python related ones
+using System.Collections.Generic;
+using IronPython.Hosting;
+
+public class CameraCapture : MonoBehaviour
  {
 
     /*
@@ -22,10 +26,48 @@
 
      void Start()
      {
+        //object for taking pictures
          OVcamera = gameObject;
+
+
+        //stuff related to processing pictures taken
+        initPythonObject();
+
+
+
      }
- 
-     void LateUpdate()
+
+    private void initPythonObject()
+    {
+        var engine = Python.CreateEngine();
+
+        ICollection<string> searchPaths = engine.GetSearchPaths();
+
+        //Path to the parent folder + into vslam scripts folder
+        string vslamScriptsFolder = Path.GetDirectoryName(Application.dataPath);
+        vslamScriptsFolder = Path.GetFullPath(vslamScriptsFolder);
+        searchPaths.Add(vslamScriptsFolder);
+
+        //Path to the Python standard library
+        searchPaths.Add(Path.GetDirectoryName(Application.dataPath + @"\Plugins\Lib\"));
+
+        //set searchpaths for the engine
+        engine.SetSearchPaths(searchPaths);
+
+        //access python script
+        //accessed the classs
+        dynamic py = engine.ExecuteFile(Application.dataPath + @"\computeDisparity.py");
+
+
+        //make sure it works
+        //create object
+        dynamic greeter = py.ComputeDisparity(cameraAngle);
+        Debug.Log(greeter.greet());
+        Debug.Log(greeter.random_number(1, 5));
+    }
+
+
+    void LateUpdate()
      {           
          if (Input.GetKeyDown("f9"))
          {
