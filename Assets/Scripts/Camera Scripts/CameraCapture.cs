@@ -16,17 +16,18 @@ public class CameraCapture : MonoBehaviour
     
     */
      public RenderTexture overviewTexture;
-     GameObject OVcamera;
-     public string cameraAngle = "";
+     GameObject OVcamera_left;
+     GameObject OVcamera_right;
      private int compressSize = 1;
 
-    //canvas gameobject that displays the frames on scrren
+    //ui canvas gameobject that displays the frames on scrren
     GameObject canvasObject;
 
      void Start()
      {
         //object for taking pictures
-         OVcamera = gameObject;
+        OVcamera_left = GameObject.FindGameObjectWithTag("left");
+        OVcamera_right = GameObject.FindGameObjectWithTag("right");
 
         //get the canvas object
         canvasObject = GameObject.FindGameObjectWithTag("UI");
@@ -40,18 +41,27 @@ public class CameraCapture : MonoBehaviour
          if (Input.GetKeyUp("9"))
          {
             //capture image
-             StartCoroutine(TakeScreenShot());
+            StartCoroutine(TakeScreenShot("left"));
+            StartCoroutine(TakeScreenShot("right"));
 
-            
         }    
      }
  
  
-     public IEnumerator TakeScreenShot()
+     public IEnumerator TakeScreenShot(string cameraAngle)
      {
         yield return new WaitForEndOfFrame();
 
-        Camera camOV = OVcamera.GetComponent<Camera>();  
+
+        Camera camOV;
+        if (cameraAngle == "left")
+        {
+            camOV = OVcamera_left.GetComponent<Camera>();
+        }
+        else
+        {
+            camOV = OVcamera_right.GetComponent<Camera>();
+        }
         RenderTexture currentRT = RenderTexture.active;    
         RenderTexture.active = camOV.targetTexture;
         camOV.Render();
@@ -64,22 +74,31 @@ public class CameraCapture : MonoBehaviour
         //compress texture
         TextureScale.Bilinear(imageOverview, imageOverview.width/compressSize,  imageOverview.height/compressSize);
 
-        //0
+        //save as 0
         //save copy in color
-        saveImage_original(imageOverview);
+        saveImage_original(imageOverview, cameraAngle);
 
-        //1
+        //save as 1
         //convert to greyscale
         //imageOverview = convertToGrey(imageOverview);
         //saveImage(imageOverview);
 
-        //2
+        //save as 2
         //sobel operation
         //imageOverview = sobelOperation(imageOverview);
         //saveImage(imageOverview);
 
-        // update the output frame on screen
-        canvasObject.transform.Find("Left_Frame_Image").GetComponent<computeDepth>().UpdateFrame(imageOverview);
+        //use 0
+        //update the output frame on screen
+        if(cameraAngle == "left")
+        {
+            canvasObject.transform.Find("Left_Frame_Image").GetComponent<computeDepth>().UpdateFrame(imageOverview);
+        }
+        else if(cameraAngle == "right")
+        {
+            canvasObject.transform.Find("Right_Frame_Image").GetComponent<computeDepth>().UpdateFrame(imageOverview);
+        }
+        
 
         //destory texture (idk why)
         Destroy(imageOverview);
@@ -89,7 +108,7 @@ public class CameraCapture : MonoBehaviour
 
 
     //save image to computer// original copy, post compression
-    private void saveImage_original(Texture2D imageOverview){
+    private void saveImage_original(Texture2D imageOverview, string cameraAngle){
 
         byte[] bytes = imageOverview.EncodeToJPG();
         
