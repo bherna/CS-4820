@@ -62,13 +62,16 @@ public class CameraCapture : MonoBehaviour
         //compress texture
         TextureScale.Bilinear(imageOverview, imageOverview.width/compressSize,  imageOverview.height/compressSize);
 
+        //0
         //save copy in color
         saveImage(imageOverview);
 
+        //1
         //convert to greyscale
         imageOverview = convertToGrey(imageOverview);
         saveImage(imageOverview);
 
+        //2
         //sobel operation
         //imageOverview = sobelOperation(imageOverview);
         //saveImage(imageOverview);

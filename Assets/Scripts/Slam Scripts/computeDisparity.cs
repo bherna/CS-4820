@@ -29,8 +29,11 @@ public class computeDisparity: MonoBehaviour
     public string cameraRight;
 
 
-    private Texture2D imageLeft; //image objects
-    private Texture2D imageRight;
+    //hsv filtering saved variables
+    private int _width;
+    private int _height;
+    private int[] _blue;
+    private readonly ParallelOptions _pOptions = new ParallelOptions { MaxDegreeOfParallelism = 16 };
 
 
     //variable that keeps track of the number of cameras that finished photo taking
@@ -56,18 +59,7 @@ public class computeDisparity: MonoBehaviour
     }
 
 
-    //function to set the current captured photos
-    private void setCameraPhotos()
-    {
-        //left image update
-        imageLeft = new Texture2D(2, 2); //new texture object
-        //imageLeft.LoadImage(cameraLeft); //get from file
-
-        //right image update
-        imageRight = new Texture2D(2, 2); //new texture object
-        //imageRight.LoadImage(cameraRight); //get from file
-
-    }
+  
 
 
     //computes a hsv-filter on the camera photos
@@ -77,7 +69,61 @@ public class computeDisparity: MonoBehaviour
         //compute image left hsv******
         //first blur the frame
         gausianBlur blurLeft = new gausianBlur(cameraLeft.ToString());
-        blurLeft.Process(2).Save(Application.dataPath + "/Backgrounds/" + "cameraLeft-blur.jpg"); 
+        blurLeft.Process(2).Save(Application.dataPath + "/Backgrounds/" + "left-blur-0.jpg");
+
+        gausianBlur blurRight = new gausianBlur(cameraLeft.ToString());
+        blurRight.Process(2).Save(Application.dataPath + "/Backgrounds/" + "right-blur-0.jpg");
+
+
+
+
+        //our hsv works by just finding anything blue, and setting that as the max color value, everything else is 0
+        Bitmap image = new Bitmap(Application.dataPath + "/Backgrounds/" + "left-blur-0.jpg");
+        var rct = new Rectangle(0, 0, image.Width, image.Height);
+        var source = new int[rct.Width * rct.Height];
+        var bits = image.LockBits(rct, ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
+        Marshal.Copy(bits.Scan0, source, 0, source.Length);
+        image.UnlockBits(bits);
+
+        _width = image.Width;
+        _height = image.Height;
+
+        
+        _blue = new int[_width * _height];
+
+        Parallel.For(0, source.Length, _pOptions, i =>
+        {
+            _blue[i] = (source[i] & 0x0000ff);
+        });
+
+        var dest = new int[_width * _height];
+
+
+        //for each pixel in the image
+        //if not blue , set as 0
+        //else 1
+
+        Parallel.For(0, dest.Length, _pOptions, i =>
+        {
+            if (_blue[i] > 10)
+            {
+                dest[i] = 2147483647;
+            }
+            else
+            {
+                dest[i] = 0;
+            }
+
+        });
+
+
+        var newImage = new Bitmap(_width, _height);
+        var bits2 = newImage.LockBits(rct, ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
+        Marshal.Copy(dest, 0, bits2.Scan0, dest.Length);
+        newImage.UnlockBits(bits2);
+
+        newImage.Save(Application.dataPath + "/Backgrounds/" + "left-blur-1.jpg");
+
 
     }
 
