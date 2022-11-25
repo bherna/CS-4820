@@ -2,7 +2,7 @@ using System.IO;
 using UnityEngine;
 using System.Collections;
 using System;
-
+using OpenCvSharp.Demo;
 
 
 public class CameraCapture : MonoBehaviour
@@ -17,17 +17,19 @@ public class CameraCapture : MonoBehaviour
     */
      public RenderTexture overviewTexture;
      GameObject OVcamera;
-     public int fileCounter = 0;
      public string cameraAngle = "";
      private int compressSize = 1;
 
-
+    //canvas gameobject that displays the frames on scrren
+    GameObject canvasObject;
 
      void Start()
      {
         //object for taking pictures
          OVcamera = gameObject;
 
+        //get the canvas object
+        canvasObject = GameObject.FindGameObjectWithTag("UI");
      }
 
     
@@ -64,37 +66,37 @@ public class CameraCapture : MonoBehaviour
 
         //0
         //save copy in color
-        saveImage(imageOverview);
+        saveImage_original(imageOverview);
 
         //1
         //convert to greyscale
-        imageOverview = convertToGrey(imageOverview);
-        saveImage(imageOverview);
+        //imageOverview = convertToGrey(imageOverview);
+        //saveImage(imageOverview);
 
         //2
         //sobel operation
         //imageOverview = sobelOperation(imageOverview);
         //saveImage(imageOverview);
 
+        // update the output frame on screen
+        canvasObject.transform.Find("Left_Frame_Image").GetComponent<computeDepth>().UpdateFrame(imageOverview);
+
         //destory texture (idk why)
         Destroy(imageOverview);
 
-        //run computeDispairty
-        gameObject.GetComponentInParent<computeDisparity>().doDisparity();
-
     }
 
 
 
-    //save image to computer
-    private void saveImage(Texture2D imageOverview){
+    //save image to computer// original copy, post compression
+    private void saveImage_original(Texture2D imageOverview){
 
         byte[] bytes = imageOverview.EncodeToJPG();
         
-        String filename = cameraAngle + fileCounter + ".jpg";
+        String filename = cameraAngle + "0" + ".jpg";
         File.WriteAllBytes(Application.dataPath + "/Backgrounds/" + filename, bytes);
-        fileCounter++;
     }
+
 
 
 

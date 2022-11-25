@@ -8,6 +8,7 @@ using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
+using OpenCvSharp;
 
 
 public class computeDisparity: MonoBehaviour
@@ -34,6 +35,8 @@ public class computeDisparity: MonoBehaviour
     private int _height;
     private int[] _blue;
     private readonly ParallelOptions _pOptions = new ParallelOptions { MaxDegreeOfParallelism = 16 };
+
+    public Texture2D texture;
 
 
     //variable that keeps track of the number of cameras that finished photo taking
@@ -68,17 +71,38 @@ public class computeDisparity: MonoBehaviour
     {
         //compute image left hsv******
         //first blur the frame
-        gausianBlur blurLeft = new gausianBlur(cameraLeft.ToString());
-        blurLeft.Process(2).Save(Application.dataPath + "/Backgrounds/" + "left-blur-0.jpg");
+        gausianBlur blurLeft = new gausianBlur(cameraLeft + ".jpg");
+        blurLeft.Process(2).Save(Application.dataPath + "/Backgrounds/" + cameraLeft + "-blur.jpg");
 
-        gausianBlur blurRight = new gausianBlur(cameraLeft.ToString());
-        blurRight.Process(2).Save(Application.dataPath + "/Backgrounds/" + "right-blur-0.jpg");
-
-
+        gausianBlur blurRight = new gausianBlur(cameraRight + ".jpg");
+        blurRight.Process(2).Save(Application.dataPath + "/Backgrounds/" + cameraRight + "-blur.jpg");
 
 
+        //compute HSV Filter on both photos
+        var tmpImage = computeHSVOnPhoto(cameraLeft + "-blur.jpg");
+        tmpImage.Save(Application.dataPath + "/Backgrounds/" + cameraLeft + "-hsv.jpg");
+        tmpImage.Dispose();
+
+        //compute HSV Filter on both photos
+        tmpImage = computeHSVOnPhoto(cameraRight + "-blur.jpg");
+        tmpImage.Save(Application.dataPath + "/Backgrounds/" + cameraRight + "-hsv.jpg");
+        tmpImage.Dispose();
+
+
+        //get 
+        Mat frame_left = new Mat(Application.dataPath + "/Backgrounds/" + cameraLeft + "-blur.jpg");
+        Mat mask_left = new Mat(Application.dataPath + "/Backgrounds/" + cameraLeft + "-hsv.jpg");
+        Mat res_left = new Mat();
+        Cv2.BitwiseAnd(frame_left, frame_left, res_left, mask_left);
+
+    }
+
+    
+    //used post blur to compute an hsv filter of the photo
+    private Bitmap computeHSVOnPhoto(string filename)
+    {
         //our hsv works by just finding anything blue, and setting that as the max color value, everything else is 0
-        Bitmap image = new Bitmap(Application.dataPath + "/Backgrounds/" + "left-blur-0.jpg");
+        Bitmap image = new Bitmap(Application.dataPath + "/Backgrounds/" + filename);
         var rct = new Rectangle(0, 0, image.Width, image.Height);
         var source = new int[rct.Width * rct.Height];
         var bits = image.LockBits(rct, ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
@@ -88,7 +112,7 @@ public class computeDisparity: MonoBehaviour
         _width = image.Width;
         _height = image.Height;
 
-        
+
         _blue = new int[_width * _height];
 
         Parallel.For(0, source.Length, _pOptions, i =>
@@ -122,9 +146,7 @@ public class computeDisparity: MonoBehaviour
         Marshal.Copy(dest, 0, bits2.Scan0, dest.Length);
         newImage.UnlockBits(bits2);
 
-        newImage.Save(Application.dataPath + "/Backgrounds/" + "left-blur-1.jpg");
-
-
+        return newImage;
     }
 
 

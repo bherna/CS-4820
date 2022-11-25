@@ -27,7 +27,7 @@ public class gausianBlur
     public gausianBlur(String filename)
     {
         //get image from file
-        Bitmap image = new Bitmap(Application.dataPath + "/Backgrounds/" + "left0.jpg");
+        Bitmap image = new Bitmap(Application.dataPath + "/Backgrounds/" + filename );
 
         var rct = new Rectangle(0, 0, image.Width, image.Height);
         var source = new int[rct.Width * rct.Height];
