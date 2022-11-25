@@ -3,9 +3,7 @@ using UnityEngine;
 using System.Collections;
 using System;
 
-//python related ones
-using System.Collections.Generic;
-using IronPython.Hosting;
+
 
 public class CameraCapture : MonoBehaviour
  {
@@ -22,57 +20,28 @@ public class CameraCapture : MonoBehaviour
      public int fileCounter = 0;
      public string cameraAngle = "";
      private int compressSize = 1;
- 
+
+
 
      void Start()
      {
         //object for taking pictures
          OVcamera = gameObject;
 
-
-        //stuff related to processing pictures taken
-        initPythonObject();
-
-
-
      }
 
-    private void initPythonObject()
-    {
-        var engine = Python.CreateEngine();
-
-        ICollection<string> searchPaths = engine.GetSearchPaths();
-
-        //Path to the parent folder + into vslam scripts folder
-        string vslamScriptsFolder = Path.GetDirectoryName(Application.dataPath);
-        vslamScriptsFolder = Path.GetFullPath(vslamScriptsFolder);
-        searchPaths.Add(vslamScriptsFolder);
-
-        //Path to the Python standard library
-        searchPaths.Add(Path.GetDirectoryName(Application.dataPath + @"\Plugins\Lib\"));
-
-        //set searchpaths for the engine
-        engine.SetSearchPaths(searchPaths);
-
-        //access python script
-        //accessed the classs
-        dynamic py = engine.ExecuteFile(Application.dataPath + @"\computeDisparity.py");
-
-
-        //make sure it works
-        //create object
-        dynamic greeter = py.ComputeDisparity(cameraAngle);
-        Debug.Log(greeter.greet());
-        Debug.Log(greeter.random_number(1, 5));
-    }
+    
 
 
     void LateUpdate()
      {           
-         if (Input.GetKeyDown("f9"))
+         if (Input.GetKeyUp("9"))
          {
+            //capture image
              StartCoroutine(TakeScreenShot());
-         }    
+
+            
+        }    
      }
  
  
@@ -101,13 +70,16 @@ public class CameraCapture : MonoBehaviour
         saveImage(imageOverview);
 
         //sobel operation
-        imageOverview = sobelOperation(imageOverview);
-        saveImage(imageOverview);
+        //imageOverview = sobelOperation(imageOverview);
+        //saveImage(imageOverview);
 
         //destory texture (idk why)
         Destroy(imageOverview);
 
-     }
+        //run computeDispairty
+        gameObject.GetComponentInParent<computeDisparity>().doDisparity();
+
+    }
 
 
 
