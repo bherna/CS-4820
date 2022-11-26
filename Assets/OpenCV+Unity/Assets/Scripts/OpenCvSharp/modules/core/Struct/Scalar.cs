@@ -1190,6 +1190,18 @@ namespace OpenCvSharp
         /// </summary>
         public static readonly Scalar YellowGreen = FromRgb(154, 205, 50);
 
+        /// <summary>
+        /// #low blue
+        /// </summary>
+        public static readonly Scalar low_blue = FromRgb(140, 106, 0);
+
+        /// <summary>
+        /// #up blue
+        /// </summary>
+        public static readonly Scalar up_blue = FromRgb(255, 255, 255);
+
+
+
         #endregion
     }
 }
