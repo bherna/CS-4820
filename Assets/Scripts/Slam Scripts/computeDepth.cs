@@ -12,18 +12,10 @@ namespace OpenCvSharp.Demo
         //variables
         public Texture2D texture;
 
-        Mat low_blue;
-        Mat up_blue;
 
         // Start is called before the first frame update
         void Start()
         {
-            //init range matrixes
-            low_blue = new Mat();
-            up_blue = new Mat();
-
-            low_blue.SetTo(Scalar.low_blue);
-            up_blue.SetTo(Scalar.up_blue);
 
             //update frame
             Mat mat = Unity.TextureToMat(this.texture);
@@ -53,26 +45,40 @@ namespace OpenCvSharp.Demo
 
         private Mat getDisparity(Mat inputFrame)
         {
-            return add_hsv(inputFrame);
+            //make a copy of the frame, and apply hsv filter on it
+            Mat mask = add_hsv(inputFrame);
+            
+            //now bitwise and the frame, to get an outline
+            Mat result = new Mat();
+            Cv2.BitwiseAnd(inputFrame, inputFrame, result, mask);
+
+            return result;
 
         }
 
         private Mat add_hsv(Mat inputFrame)
         {
 
-            //blur
+            //blur the frame to remove noise first
             Mat blur = new Mat();
-            Cv2.GaussianBlur(inputFrame, blur, Size.Zero, 1.84, 1.84);
+            Cv2.GaussianBlur(inputFrame, blur, new Size (5,5), 0);
 
             //hsv filter
             Mat hsv = new Mat();
-            Cv2.CvtColor(blur, hsv, ColorConversionCodes.BGR2HSV);
+            Cv2.CvtColor(blur, hsv, ColorConversionCodes.RGB2HSV);
 
-            return hsv;
+            //levels at which we track
+            //detect for color red
+            Scalar l_b_r = new Scalar(100, 0, 0);
+            Scalar u_b_r = new Scalar(255, 255, 255);
 
             //hsv-filter mask
             Mat mask = new Mat();
-            Cv2.InRange(hsv, low_blue, up_blue, mask);
+            Cv2.InRange(hsv, l_b_r, u_b_r, mask);
+            
+            //remove more noise from the hsv filter
+            Cv2.Erode(mask, mask, new Mat(), new Point(-1,1), 2);
+            Cv2.Dilate(mask, mask, new Mat(), new Point(-1,1), 2);
 
             return mask;
         }
