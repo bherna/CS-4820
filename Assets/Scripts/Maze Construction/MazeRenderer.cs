@@ -32,11 +32,14 @@ public class MazeRenderer : MonoBehaviour
 
     //prefab for the goal
     [SerializeField]
-    private Transform goalPrefab = null;
+    private GameObject goalPrefab = null;
 
     //prefab for the goal
     [SerializeField]
     private Transform nodePrefab = null;
+
+    //2d array of all the floor parent objects
+    Transform[,] floors;
 
 
 
@@ -44,19 +47,23 @@ public class MazeRenderer : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+
+        //init array
+        floors = new Transform[width, height];
+
         //generate a random maze
         var maze = MazeGenerator.Generate(width, height);
         Draw(maze);
 
         //place goal object
-        var goal = Instantiate(goalPrefab);
+        GameObject goal = Instantiate(goalPrefab);
         //place at the opposite side of bot
-        goal.position = new Vector3(size*width -size, 0, size*height -size);
+        goal.transform.position = new Vector3(size*width -size, 0, size*height -size);
 
         //place it at the start of maze
         var bot = Instantiate(botObject);
-        //give the bot the maze matrix, (idea for wall detection)
-        bot.GetComponent<BasicBotDepthFirst>().GetWallStates(maze, size);
+        //give the bot the maze matrix, (idea for wall detection), floors for  rendering completion
+        bot.GetComponent<BasicBotDepthFirst>().GetWallStates(maze, size, floors);
 
 
     }
@@ -65,16 +72,20 @@ public class MazeRenderer : MonoBehaviour
     //used for actually rendering the maze, given
     private void Draw(WallState[,] maze)
     {
-        //create the floor first, under the bot's height
-        var floor = Instantiate(floorPrefab, transform);
-        floor.position = new Vector3(0,-botObject.transform.localScale.y / 2 ,0);
-        floor.localScale = new Vector3(width, 1, height); //increase floor size
-
         
+
+        //for each node in the  maze
         for (int i = 0; i < width; i++)
         {
             for (int j = 0; j < height; j++)
             {
+
+                //create the floor first, under the bot's height
+                var floor = Instantiate(floorPrefab);
+                floor.position = new Vector3(i*size,-botObject.transform.localScale.y / 2 ,j*size);
+                floor.localScale = new Vector3(wallPrefab.localScale.z*size,1,wallPrefab.localScale.z*size);
+                floors[i,j] = floor;
+
                 //first get the maze node we are dealing with
                 var cell = maze[i,j];
                 var position = new Vector3(i*size, 0, j*size); //puts us at the start of the maze, then adds the offset
@@ -89,6 +100,7 @@ public class MazeRenderer : MonoBehaviour
                     var topWall = Instantiate(wallPrefab, transform) as Transform;
                     topWall.position = position + new Vector3(0,0,size/2);
                     topWall.localScale = new Vector3(size, topWall.localScale.y, topWall.localScale.z);
+                    topWall.transform.SetParent(floor.transform);
                 }
 
                 if(cell.HasFlag(WallState.LEFT)){
@@ -96,6 +108,7 @@ public class MazeRenderer : MonoBehaviour
                     leftWall.position = position + new Vector3(-size/2, 0, 0);
                     leftWall.localScale = new Vector3(size, leftWall.localScale.y, leftWall.localScale.z);
                     leftWall.eulerAngles = new Vector3(0, 90, 0);
+                    leftWall.transform.SetParent(floor.transform);
                 }
 
                 //now if we are the last row, or column we are missing a wall
@@ -108,6 +121,7 @@ public class MazeRenderer : MonoBehaviour
                         rightWall.position = position + new Vector3(+size/2, 0, 0);
                         rightWall.localScale = new Vector3(size, rightWall.localScale.y, rightWall.localScale.z);
                         rightWall.eulerAngles = new Vector3(0, 90, 0);
+                        rightWall.transform.SetParent(floor.transform);
                     }
                 }
 
@@ -117,6 +131,7 @@ public class MazeRenderer : MonoBehaviour
                         var bottomWall = Instantiate(wallPrefab, transform) as Transform;
                         bottomWall.position = position + new Vector3(0,0,-size/2);
                         bottomWall.localScale = new Vector3(size, bottomWall.localScale.y, bottomWall.localScale.z);
+                        bottomWall.transform.SetParent(floor.transform);
                     }
                 }
             }

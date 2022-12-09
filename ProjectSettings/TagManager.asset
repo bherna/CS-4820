@@ -7,6 +7,9 @@ TagManager:
   - UI
   - left
   - right
+  - floor
+  - wall
+  - goal
   layers:
   - Default
   - TransparentFX

@@ -10,6 +10,10 @@ public class BasicBotDepthFirst : MonoBehaviour
     //2d array of the maze in terms of wall statese
     WallState[,] maze;
 
+    //2d array of all the floors
+    Transform[,] floors;
+    public Material visitedMaterial;
+
     //2d array for holding information at each possible node in the maze
     private class MazeCell{
 
@@ -156,7 +160,7 @@ public class BasicBotDepthFirst : MonoBehaviour
 
 
     //function to take in the statemap of the maze
-    public void GetWallStates(WallState[,] newMaze, float newSize){
+    public void GetWallStates(WallState[,] newMaze, float newSize, Transform[,] floors){
 
         //set the maze variable
         maze = newMaze;
@@ -166,6 +170,8 @@ public class BasicBotDepthFirst : MonoBehaviour
 
         //set our boolean to true, we can start moving now
         startMove = true;
+
+        this.floors = floors;
 
         //initialize our maze info array
         initMazeInfo();
@@ -391,7 +397,9 @@ public class BasicBotDepthFirst : MonoBehaviour
     void Update()
     {
 
-        
+        //visit this node
+        mazeCells[position[0], position[1]].NowVisited();
+        floors[position[0],position[1]].GetComponent<Renderer>().material = visitedMaterial;
 
         //only move when we are ready
         if(startMove && Time.time >= lastMove+CooldownDurationInSec){
@@ -469,10 +477,19 @@ public class BasicBotDepthFirst : MonoBehaviour
             */
             //new pos
             transform.position = new Vector3(position[0]*size, 0, position[1]*size);
-            //visit this node
-            mazeCells[position[0], position[1]].NowVisited();
+            
             //countdown till next position check
             lastMove = Time.time;
+        }
+    }
+
+    void OnCollisionEnter(Collision collision){
+        
+        //on collsion with goal
+        if(collision.gameObject.tag == "goal"){
+            //stop searching
+            startMove = false;
+
         }
     }
 
