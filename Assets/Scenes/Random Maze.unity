@@ -228,6 +228,7 @@ GameObject:
   - component: {fileID: 963194228}
   - component: {fileID: 963194227}
   - component: {fileID: 963194226}
+  - component: {fileID: 963194229}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -301,6 +302,23 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
+--- !u!114 &963194229
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 963194225}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: afb916cf8a7c1424c80882535c691968, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_MovementSpeed: 10
+  m_FastMovementSpeed: 100
+  m_FreeLookSensitivity: 3
+  m_ZoomSensitivity: 10
+  m_FastZoomSensitivity: 50
 --- !u!1 &1815073020
 GameObject:
   m_ObjectHideFlags: 0
@@ -349,3 +367,7 @@ MonoBehaviour:
   height: 10
   wallPrefab: {fileID: 5830341915530679828, guid: 355bdbe807634384386955ffcb4957c4, type: 3}
   floorPrefab: {fileID: 6001697425563832703, guid: 37bcde3e0868fbf409da7c61b83b2bb1, type: 3}
+  size: 2.39
+  botObject: {fileID: 6909639372260634304, guid: f08e50c84dbfe5e4aaf2866c24ee1e65, type: 3}
+  goalPrefab: {fileID: 4577075135202313748, guid: b3debf85c26b9bb40b9db3352ee67b54, type: 3}
+  nodePrefab: {fileID: 4511126792339523772, guid: 9ecb02173250b9943bbb203c3c81b231, type: 3}

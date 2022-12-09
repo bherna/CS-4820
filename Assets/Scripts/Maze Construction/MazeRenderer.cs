@@ -23,22 +23,51 @@ public class MazeRenderer : MonoBehaviour
     private Transform floorPrefab = null;
 
     //used for determining the size of a node
+    [SerializeField]
     private float size = 1f;
+
+    //prefab for the bot
+    [SerializeField]
+    private GameObject botObject = null;
+
+    //prefab for the goal
+    [SerializeField]
+    private Transform goalPrefab = null;
+
+    //prefab for the goal
+    [SerializeField]
+    private Transform nodePrefab = null;
+
+
 
 
     // Start is called before the first frame update
     void Start()
     {
+        //generate a random maze
         var maze = MazeGenerator.Generate(width, height);
         Draw(maze);
+
+        //place goal object
+        var goal = Instantiate(goalPrefab);
+        //place at the opposite side of bot
+        goal.position = new Vector3(size*width -size, 0, size*height -size);
+
+        //place it at the start of maze
+        var bot = Instantiate(botObject);
+        //give the bot the maze matrix, (idea for wall detection)
+        bot.GetComponent<BasicBotDepthFirst>().GetWallStates(maze, size);
+
+
     }
 
 
     //used for actually rendering the maze, given
     private void Draw(WallState[,] maze)
     {
-        //create the floor first
+        //create the floor first, under the bot's height
         var floor = Instantiate(floorPrefab, transform);
+        floor.position = new Vector3(0,-botObject.transform.localScale.y / 2 ,0);
         floor.localScale = new Vector3(width, 1, height); //increase floor size
 
         
@@ -46,10 +75,13 @@ public class MazeRenderer : MonoBehaviour
         {
             for (int j = 0; j < height; j++)
             {
-                //first get state of the maze wall of the node we are in
+                //first get the maze node we are dealing with
                 var cell = maze[i,j];
-                var position = new Vector3(-width/2 + i, 0, -height/2 + j); //puts the middle of the maze at (0,0)
+                var position = new Vector3(i*size, 0, j*size); //puts us at the start of the maze, then adds the offset
 
+                //create a node prefab that the basic bot can travel to
+                var node = Instantiate(nodePrefab);
+                node.position = position + new Vector3(0,-botObject.transform.localScale.y / 2,0);
 
                 //now we draw the walls of the maze, draw every up and left wall conditionally
                 //      we dont draw every wall, since they will click
