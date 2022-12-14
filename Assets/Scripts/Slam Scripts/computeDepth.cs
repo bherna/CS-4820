@@ -31,11 +31,10 @@ namespace OpenCvSharp.Demo
 
         public void UpdateFrame(Texture2D updateTexture)
         {
-            Debug.Log("update frame texture");
+            Debug.Log("update frame texture - HSV filter");
             Mat mat = Unity.TextureToMat(updateTexture);
 
             Mat depthMap = getDisparity(mat);
-            //Cv2.CvtColor(mat, grayMat, ColorConversionCodes.BGR2GRAY);
 
             Texture2D texture = Unity.MatToTexture(depthMap);
 

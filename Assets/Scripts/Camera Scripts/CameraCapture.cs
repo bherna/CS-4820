@@ -3,6 +3,7 @@ using UnityEngine;
 using System.Collections;
 using System;
 using OpenCvSharp.Demo;
+using UnityEngine.UI;
 
 
 public class CameraCapture : MonoBehaviour
@@ -19,6 +20,10 @@ public class CameraCapture : MonoBehaviour
      GameObject OVcamera_left;
      GameObject OVcamera_right;
      private int compressSize = 1;
+
+    //switch variable, to print either hsv or sobel
+     private bool printhsv = false;
+     Texture2D imageOverview;
 
     //ui canvas gameobject that displays the frames on scrren
     GameObject canvasObject;
@@ -41,10 +46,19 @@ public class CameraCapture : MonoBehaviour
          if (Input.GetKeyUp("9"))
          {
             //capture image
+            printhsv = true;
             StartCoroutine(TakeScreenShot("left"));
             StartCoroutine(TakeScreenShot("right"));
 
         }    
+        else if (Input.GetKeyUp("8"))
+         {
+            //capture image
+            printhsv = false;
+            StartCoroutine(TakeScreenShot("left"));
+            StartCoroutine(TakeScreenShot("right"));
+
+        }
      }
  
  
@@ -65,7 +79,7 @@ public class CameraCapture : MonoBehaviour
         RenderTexture currentRT = RenderTexture.active;    
         RenderTexture.active = camOV.targetTexture;
         camOV.Render();
-        Texture2D imageOverview = new Texture2D(camOV.targetTexture.width, camOV.targetTexture.height, TextureFormat.RGB24, false);
+        imageOverview = new Texture2D(camOV.targetTexture.width, camOV.targetTexture.height, TextureFormat.RGB24, false);
         imageOverview.ReadPixels(new Rect(0, 0, camOV.targetTexture.width, camOV.targetTexture.height), 0, 0);
         imageOverview.Apply();
         RenderTexture.active = currentRT;    
@@ -74,34 +88,39 @@ public class CameraCapture : MonoBehaviour
         //compress texture
         TextureScale.Bilinear(imageOverview, imageOverview.width/compressSize,  imageOverview.height/compressSize);
 
-        //save as 0
-        //save copy in color
-        saveImage_original(imageOverview, cameraAngle);
-
-        //save as 1
-        //convert to greyscale
-        //imageOverview = convertToGrey(imageOverview);
-        //saveImage(imageOverview);
-
-        //save as 2
-        //sobel operation
-        //imageOverview = sobelOperation(imageOverview);
-        //saveImage(imageOverview);
-
+        
         //use 0
         //update the output frame on screen
-        if(cameraAngle == "left")
-        {
-            canvasObject.transform.Find("Left_Frame_Image").GetComponent<computeDepth>().UpdateFrame(imageOverview);
+        if(printhsv){
+
+            if(cameraAngle == "left")
+            {
+                canvasObject.transform.Find("Left_Frame_Image").GetComponent<computeDepth>().UpdateFrame(imageOverview);
+            }
+            else if(cameraAngle == "right")
+            {
+                canvasObject.transform.Find("Right_Frame_Image").GetComponent<computeDepth>().UpdateFrame(imageOverview);
+            }
         }
-        else if(cameraAngle == "right")
-        {
-            canvasObject.transform.Find("Right_Frame_Image").GetComponent<computeDepth>().UpdateFrame(imageOverview);
+        else{
+            
+            //for each camera
+            if(cameraAngle == "left")
+            {
+                //sobel operation
+                imageOverview = sobelOperation(imageOverview);
+                saveImage_original(imageOverview, "left");
+            }
+            else if(cameraAngle == "right")
+            {
+                //sobel operation
+                imageOverview = sobelOperation(imageOverview);
+                saveImage_original(imageOverview, "right");
+            }
+            
+
         }
         
-
-        //destory texture (idk why)
-        Destroy(imageOverview);
 
     }
 
