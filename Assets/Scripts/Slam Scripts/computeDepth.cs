@@ -48,15 +48,14 @@ namespace OpenCvSharp.Demo
             //make a copy of the frame, and apply hsv filter on it
             Mat mask = add_hsv(inputFrame);
             
-/*
             //now bitwise and the frame, to get an outline
             Mat result = new Mat();
             Cv2.BitwiseAnd(inputFrame, inputFrame, result, mask);
 
-            //apply shape recognition, find any rectanlges on screen
-            Point[] rect_frame = find_Rectangles(inputFrame, mask);
-*/
-            return mask;
+            //apply shape recognition, find any rectanlges on screen 
+            //Point[] rect_frame = find_Rectangles(inputFrame, mask);  //doesnt work
+
+            return result;
 
         }
 
@@ -67,7 +66,7 @@ namespace OpenCvSharp.Demo
 
             Point[] center = new Point[2]; 
             //first we find all contours in the frame
-            /*
+/*            
             Point[][] contours;
             HierarchyIndex[] hierarchy;
             Cv2.FindContours(mask, out contours, out hierarchy, RetrievalModes.External, ContourApproximationModes.ApproxSimple);
@@ -77,7 +76,7 @@ namespace OpenCvSharp.Demo
             if (contours.Length > 0){
 
             }
-            */
+  */          
             //return 
             return center;
         }
@@ -96,7 +95,7 @@ namespace OpenCvSharp.Demo
             //hsv filter
             Mat hsv = new Mat();
             Cv2.CvtColor(blur, hsv, ColorConversionCodes.RGB2HSV);
-/*
+
             //levels at which we track
             //detect for color red
             Scalar l_b_r = new Scalar(100, 0, 0);
@@ -109,8 +108,8 @@ namespace OpenCvSharp.Demo
             //remove more noise from the hsv filter
             Cv2.Erode(mask, mask, new Mat(), new Point(-1,1), 2);
             Cv2.Dilate(mask, mask, new Mat(), new Point(-1,1), 2);
-*/
-            return hsv;
+
+            return mask;
         }
     }
 }

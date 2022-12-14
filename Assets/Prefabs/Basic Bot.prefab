@@ -112,7 +112,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   visitedMaterial: {fileID: 2100000, guid: 8c9edae70e364b0468fbf06df28dcdeb, type: 2}
-  CooldownDurationInSec: 0.12
+  CooldownDurationInSec: 0.05
 --- !u!54 &-1835261239508875785
 Rigidbody:
   m_ObjectHideFlags: 0
